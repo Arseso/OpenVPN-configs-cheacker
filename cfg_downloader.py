@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup as soup
 import requests
 import tqdm
 
+import commands
+
 URL = 'https://ipspeed.info'
 PAGE = 'https://ipspeed.info/freevpn_openvpn.php?language=en'
 
@@ -32,12 +34,9 @@ def _get_files_from_page() -> list[_File]:
     files = []
     countries = {}
 
-    # Поиск всех блоков с информацией о VPN-серверах
     entries = page.find_all("div", {"style": "clear: both;"})
 
-    # Перебор каждой записи
     for entry in entries:
-        # Извлекаем страну
         country_div = entry.find_next_sibling("div", class_="list", style="float: left; width: 263px;")
         if not country_div:
             continue
@@ -45,14 +44,12 @@ def _get_files_from_page() -> list[_File]:
         if not countries.get(country):
             countries[country] = name_gen(country)
         file_name = next(countries[country])
-        # Извлекаем ссылки (может быть несколько ссылок: UDP и TCP)
         link_div = country_div.find_next_sibling("div", class_="list", style="float: left; width: 373px;")
         links = link_div.find_all("a")
         
         
         for link in links:
             href = link.get('href')
-            # Определяем тип соединения (UDP или TCP)
             if "udp" in href:
                 protocol = "UDP"
             elif "tcp" in href:
@@ -64,20 +61,8 @@ def _get_files_from_page() -> list[_File]:
     return files
 
 def _delete_from_tmp():
-        
-    subprocess.run(
-        ["rm", "-rf", "./tmp"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    
-    subprocess.run(
-        ["mkdir", "tmp"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    
-    
+    commands.rmdir_tmp()
+    commands.mkdir_tmp()
 
 def download():
     _delete_from_tmp()

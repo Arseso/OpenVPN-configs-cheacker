@@ -2,49 +2,26 @@ import os
 import subprocess
 import tqdm
 
+import commands
+
 def _check(vpn_name) -> int:
     try:
         
-        subprocess.run(
-            ["nmcli", "connection", "up", "id", vpn_name],
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=10.0
-            
-        )
+        commands.connection_up(vpn_name)
         
-        subprocess.run(
-            ["nmcli", "connection", "down", "id", vpn_name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        commands.connection_down(vpn_name)
         
         return 0
 
     except subprocess.CalledProcessError as e:
         print(f"INTERNAL ERROR: {e.stderr}")
         
-        subprocess.run(
-            ["nmcli", "connection", "delete", "id", vpn_name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        commands.connection_delete(vpn_name)
         return 2
     
     except subprocess.TimeoutExpired:
-        subprocess.run(
-            ["nmcli", "connection", "down", "id", vpn_name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        
-        subprocess.run(
-            ["nmcli", "connection", "delete", "id", vpn_name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        commands.connection_down(vpn_name)
+        commands.connection_delete(vpn_name)
         return 1
     
 def _send_to_nmcli() -> list[str]:
@@ -52,27 +29,13 @@ def _send_to_nmcli() -> list[str]:
     vpn_names = []
     
     for filename in sorted(os.listdir("./tmp")):
-        subprocess.run(
-            ["nmcli", "connection", "import", "type", "openvpn", "file",  f"./tmp/{filename}"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        commands.connection_import(filename)
         
         vpn_names.append(filename.split(".")[0])
     return vpn_names
 
 def _clear_vpn_connections():
-    subprocess.run(
-            ["chmod", "+x", "./clear_vpn_connections.sh"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-    
-    subprocess.run(
-            ["./clear_vpn_connections.sh"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+    commands.clear_connections_pipeline()
 
 def check_cfgs_from_tmp():
     _clear_vpn_connections()
