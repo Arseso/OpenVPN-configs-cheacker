@@ -1,5 +1,5 @@
-OpenVPN configs checker \n
-Tested on Ubuntu 24.04\n
-Run:\n 
-`python -m pip install -r requirements.txt`\n
-`python -m main.py`\n
+OpenVPN configs checker
+Tested on Ubuntu 24.04
+Run:
+`python -m pip install -r requirements.txt`
+`python -m main.py`
