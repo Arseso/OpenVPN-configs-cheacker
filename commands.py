@@ -28,7 +28,7 @@ def mkdir_tmp():
     )
     
 def connection_import(filename):
-    subprocess.run(
+    subprocess.Popen(
             ["nmcli", "connection", "import", "type", "openvpn", "file",  f"./tmp/{filename}"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -52,17 +52,27 @@ def connection_down(vpn_name):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            timeout=10.0
-            
         )
 
 def connection_delete(vpn_name):
-    subprocess.run(
+    subprocess.Popen(
             ["nmcli", "connection", "delete", "id", vpn_name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+def speedtest_as_csv():
+    result = subprocess.run(
+            ["speedtest-cli","--csv"],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            timeout=10.0
-            
         )
+    return result
+
+def connection_speed_modify(vpn_name: str, speed: float):
+    subprocess.Popen(
+        ["nmcli", "connection", "modify", f"{vpn_name}", "connection.id", f"{vpn_name} {speed:.2f}MB/s"]
+    )

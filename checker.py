@@ -4,23 +4,24 @@ import tqdm
 
 import commands
 
-def _check(vpn_name) -> int:
+def _check_workable(vpn_name: str, speedtest: bool) -> int:
     try:
         
         commands.connection_up(vpn_name)
         
+        if speedtest:
+            speed = float(commands.speedtest_as_csv().stdout.split(',')[6]) / 2**20
+            commands.connection_speed_modify(vpn_name, speed)
         commands.connection_down(vpn_name)
         
         return 0
 
     except subprocess.CalledProcessError as e:
-        print(f"INTERNAL ERROR: {e.stderr}")
-        
         commands.connection_delete(vpn_name)
+        print(e.stderr)
         return 2
     
     except subprocess.TimeoutExpired:
-        commands.connection_down(vpn_name)
         commands.connection_delete(vpn_name)
         return 1
     
@@ -35,14 +36,12 @@ def _send_to_nmcli() -> list[str]:
     return vpn_names
 
 def _clear_vpn_connections():
+    print("Cleaning ovpn configs")
     commands.clear_connections_pipeline()
 
-def check_cfgs_from_tmp():
+def check_cfgs_from_tmp(speedtest: bool = False):
     _clear_vpn_connections()
     names = _send_to_nmcli()
     for i in tqdm.trange(len(names), desc='CHECKING'):
-        _check(names[i])
-    
-    
-
-
+        _check_workable(names[i], speedtest)
+        

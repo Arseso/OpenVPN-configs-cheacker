@@ -1,6 +1,4 @@
 from dataclasses import dataclass
-import os
-import subprocess
 from bs4 import BeautifulSoup as soup
 import requests
 import tqdm
