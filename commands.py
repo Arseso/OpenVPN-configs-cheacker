@@ -55,7 +55,7 @@ def connection_down(vpn_name):
         )
 
 def connection_delete(vpn_name):
-    subprocess.Popen(
+    subprocess.run(
             ["nmcli", "connection", "delete", "id", vpn_name],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
